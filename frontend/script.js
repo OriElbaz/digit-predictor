@@ -1,18 +1,25 @@
 const canvas = document.getElementById('drawingGrid');
 const ctx = canvas.getContext('2d');
-const saveBtn = document.getElementById('saveBtn');
+const predictBtn = document.getElementById('predictBtn'); // Changed ID
 const clearBtn = document.getElementById('clearBtn');
+
+// New DOM Elements
+const resultArea = document.getElementById('result-area');
+const predictionText = document.getElementById('prediction-text');
+const confidenceText = document.getElementById('confidence-text');
+
+let predictionHistory = [];
 
 let isDrawing = false;
 
 // 1. Setup the brush style
 ctx.fillStyle = "black";
-ctx.fillRect(0, 0, canvas.width, canvas.height); // Fill black initially
+ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-ctx.strokeStyle = 'white'; // White color drawing
-ctx.lineWidth = 8;        // 16 size circle
-ctx.lineCap = 'round';     // Makes the line ends round (circular brush)
-ctx.lineJoin = 'round';    // Smooths corners
+ctx.strokeStyle = 'white';
+ctx.lineWidth = 8;
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
 
 // 2. Drawing Event Listeners
 canvas.addEventListener('mousedown', startDrawing);
@@ -22,58 +29,82 @@ canvas.addEventListener('mouseout', stopDrawing);
 
 function startDrawing(e) {
     isDrawing = true;
-    draw(e); // Allow drawing dots
+    draw(e);
 }
 
 function draw(e) {
     if (!isDrawing) return;
-
-    // Get mouse position relative to the canvas
     const rect = canvas.getBoundingClientRect();
-    
-    // We must scale the mouse coordinates because we visually scaled the canvas 
-    // to 300px in CSS, but the actual resolution is only 100px.
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
 
     ctx.lineTo(x, y);
     ctx.stroke();
-    
-    // Reset path to ensure independent dots work and lines stay smooth
     ctx.beginPath();
     ctx.moveTo(x, y);
 }
 
 function stopDrawing() {
     isDrawing = false;
-    ctx.beginPath(); // Reset path so lines don't connect weirdly later
+    ctx.beginPath();
 }
 
-// 3. Save Functionality
-saveBtn.addEventListener('click', async () => {
-    // Convert canvas content to a data URL (base64 string)
+// 3. Predict Functionality
+predictBtn.addEventListener('click', async () => {
     const imageURI = canvas.toDataURL("image/png");
 
+    // UI Feedback: Change button text
+    const originalText = predictBtn.innerText;
+    predictBtn.innerText = "Thinking...";
+    predictBtn.disabled = true;
+
     try {
-        const response = await fetch('http://127.0.0.1:8000/predict', { // Changed URL
+        const response = await fetch('http://127.0.0.1:8000/predict', { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ image_data: imageURI })
         });
 
         const result = await response.json();
-        alert(`Predicted: ${result.digit} (${result.confidence})`);
-    } catch (error){
-        console.error("Error uploading image:", error)
-    }
+        
+        // Show Results
+        predictionText.innerText = result.digit;
+        confidenceText.innerText = result.confidence;
+        resultArea.classList.remove('hidden');
+        
 
+        predictionHistory.push(result.digit);
+        if (predictionHistory.length > 2) {
+            predictionHistory.shift(); // Removes the oldest number
+        }
+        if (predictionHistory.length === 2) {
+            if (predictionHistory[0] === 6 && predictionHistory[1] === 7) {
+                setTimeout(() => {
+                    alert("SIXSEVEN SIXSEVEN SIXSEVEN");
+                    predictionHistory = []; 
+                }, 100);
+            }
+        }
+
+
+    } catch (error){
+        console.error("Error:", error);
+        alert("Failed to reach server. Error:", error);
+    } finally {
+        // Reset button
+        predictBtn.innerText = originalText;
+        predictBtn.disabled = false;
+    }
 });
 
 // 4. Clear Functionality
 clearBtn.addEventListener('click', () => {
+    // Clear Canvas
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Hide Results
+    resultArea.classList.add('hidden');
 });
