@@ -8,7 +8,7 @@ The model is built using TensorFlow/Keras and trained on the classic MNIST datas
 ## Features
 
 * **Interactive Interface:** Custom HTML5 Canvas for drawing digits with mouse or touch.
-* **Deep Learning Model:** Pre-trained TensorFlow Convolutional Neural Network (CNN) for high accuracy.
+* **Deep Learning Model:** Pre-trained TensorFlow Neural Network with 90% accuracy.
 * **FastAPI Backend:** Lightweight and fast Python server for real-time inference.
 * **Live Feedback:** Displays the predicted digit and the model's confidence percentage.
 
