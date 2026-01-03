@@ -3,8 +3,8 @@ import numpy as np
 from PIL import Image
 import scipy.ndimage
  
-def predict_image(image_path: str, model):
-    img_array = image_to_array(image_path)
+def predict_image(img: str, model):
+    img_array = image_to_array(img)
     final_array = transform_array(img_array)
 
     prediction = model.predict(final_array, verbose=0)
@@ -13,8 +13,8 @@ def predict_image(image_path: str, model):
 
     return predicted_digit, confidence
 
-def image_to_array(image_path):
-    original_img = Image.open(image_path).convert('L')
+def image_to_array(img):
+    original_img = img.convert('L')
     resized_img = original_img.resize((20, 20))
     array = np.array(resized_img) / 255 
     return array

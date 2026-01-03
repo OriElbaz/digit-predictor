@@ -10,7 +10,7 @@ ctx.fillStyle = "black";
 ctx.fillRect(0, 0, canvas.width, canvas.height); // Fill black initially
 
 ctx.strokeStyle = 'white'; // White color drawing
-ctx.lineWidth = 12;        // 16 size circle
+ctx.lineWidth = 8;        // 16 size circle
 ctx.lineCap = 'round';     // Makes the line ends round (circular brush)
 ctx.lineJoin = 'round';    // Smooths corners
 
@@ -53,18 +53,23 @@ function stopDrawing() {
 }
 
 // 3. Save Functionality
-saveBtn.addEventListener('click', () => {
+saveBtn.addEventListener('click', async () => {
     // Convert canvas content to a data URL (base64 string)
     const imageURI = canvas.toDataURL("image/png");
 
-    // Create a temporary link element to trigger the download
-    const link = document.createElement('a');
-    link.download = 'my-drawing.png';
-    link.href = imageURI;
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+        const response = await fetch('http://127.0.0.1:8000/predict', { // Changed URL
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image_data: imageURI })
+        });
+
+        const result = await response.json();
+        alert(`Predicted: ${result.digit} (${result.confidence})`);
+    } catch (error){
+        console.error("Error uploading image:", error)
+    }
+
 });
 
 // 4. Clear Functionality
