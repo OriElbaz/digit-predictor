@@ -6,7 +6,7 @@ def load_model(model_path: str):
  
 
 def main():
-    img_file_path = "images/img-two.png"
+    img_file_path = "images/test-img-8.png"
     model = load_model("models/digit-guesser-softmax.keras")
     digit, confidence = predict_image(img_file_path, model)
     print(f"Predicted Digit: {digit}, Confidence: {confidence*100:.2f}%")
